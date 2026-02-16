@@ -15,10 +15,13 @@ class BackApp():
             loading_thread = Thread(target=self.frontApp.display_loading_message, daemon=True)
             loading_thread.start()
 
-    def get_video_info(self, url):
+    def get_video_info(self, url : str):
         self.frontApp.is_check = True
         
         try:
+            if not url.startswith("https://www.youtube.com/watch?v="):
+                raise Exception
+
             options = {
             'quiet': True,
             'no_warnings': True,
@@ -28,9 +31,12 @@ class BackApp():
         
             with yt_dlp.YoutubeDL(options) as ydl:
                 info = ydl.extract_info(url=url, download=False)
-                print(info.get("title"))
+                
+                if not info.get("duration"):
+                    raise Exception
 
             self.frontApp.is_check = False
         except:
             self.frontApp.is_check = False
+            time.sleep(0.5)
             self.frontApp.display_error_message(message="Invalid URL.")
