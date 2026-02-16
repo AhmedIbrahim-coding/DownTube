@@ -15,7 +15,7 @@ class FrontApp(ctk.CTk):
         self.create_download_button()
 
         self.backApp = BackApp(frontApp=self)
-        self.notFound_error_message = None
+        self.error_message = None
         self.is_check = False
 
 
@@ -63,8 +63,8 @@ class FrontApp(ctk.CTk):
         self.download_button.place(relx=1, rely=1, anchor="center", x=-70, y=-30)
 
     def on_download_click(self):
-        if self.notFound_error_message:
-            self.notFound_error_message.destroy()
+        if self.error_message:
+            self.error_message.destroy()
         try:
             self.linkEntry.configure(border_color="#4D4D4D")
             link = self.linkEntry.get()
@@ -73,13 +73,17 @@ class FrontApp(ctk.CTk):
 
             self.backApp.check_existance(url=link)
         except Exception as e:
+            self.display_error_message(message=e)
+
+    def display_error_message(self, message):
+            self.is_check = False
+
             self.linkEntry.configure(border_color="red")
-            self.notFound_error_message = ctk.CTkLabel(master=self, 
-                                                       text=e, 
+            self.error_message = ctk.CTkLabel(master=self, 
+                                                       text=message, 
                                                        text_color="red", 
                                                        font=ctk.CTkFont(family="Arial", size=12, weight='bold'))
-            self.notFound_error_message.place(relx=0, rely=0, x=30, y=52)
-
+            self.error_message.place(relx=0, rely=0, x=30, y=52)
     def display_loading_message(self):
         self.loading_dots = " . . ."
 
@@ -89,22 +93,18 @@ class FrontApp(ctk.CTk):
                                             font=ctk.CTkFont(family="Arial", size=12, weight='bold'))
         
         self.loading_message_text.place(x=30, y=52)
-        self.update_loading_message()
-            
-
-    def update_loading_message(self):
-        if not self.is_check:
-            self.loading_message_text.destroy()
-            return
         
-        if self.loading_dots.count(".") >= 3:
-            self.loading_dots = ""
-        else:
-            self.loading_dots+= " ."
+        while self.is_check:
+            if self.loading_dots.count(".") >= 3:
+                self.loading_dots = ""
+            else:
+                self.loading_dots+= " ."
 
-        self.loading_message_text.configure(text="Looking for the URL"+self.loading_dots)
+            self.loading_message_text.configure(text="Looking for the URL"+self.loading_dots)
 
-        self.after(500, self.update_loading_message)
+            time.sleep(0.5)
+
+        self.loading_message_text.destroy()
 
 
     
