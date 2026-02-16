@@ -2,6 +2,7 @@
 import customtkinter as ctk
 import tkinter as tk
 from tkinter import filedialog, font as tkFont
+import time
 
 # local imports
 from Backend.mainApp import BackApp
@@ -13,7 +14,9 @@ class FrontApp(ctk.CTk):
         self.create_entry_field()
         self.create_download_button()
 
-        self.backApp = BackApp()
+        self.backApp = BackApp(frontApp=self)
+        self.notFound_error_message = None
+        self.is_check = False
 
 
     def create_main_window(self, version):
@@ -35,7 +38,8 @@ class FrontApp(ctk.CTk):
                                        height=30,
                                        placeholder_text="Enter the video link here...",
                                        corner_radius=5,
-                                       font=("Arial", 14))
+                                       font=("Arial", 14),
+                                       border_color="#4D4D4D")
         
         self.linkEntry.pack(pady=20)
 
@@ -59,11 +63,48 @@ class FrontApp(ctk.CTk):
         self.download_button.place(relx=1, rely=1, anchor="center", x=-70, y=-30)
 
     def on_download_click(self):
+        if self.notFound_error_message:
+            self.notFound_error_message.destroy()
         try:
+            self.linkEntry.configure(border_color="#4D4D4D")
             link = self.linkEntry.get()
             if not link:
                 raise Exception("Please enter a link first.")
 
-            self.backApp.check_existance()
+            self.backApp.check_existance(url=link)
         except Exception as e:
-            print(e)
+            self.linkEntry.configure(border_color="red")
+            self.notFound_error_message = ctk.CTkLabel(master=self, 
+                                                       text=e, 
+                                                       text_color="red", 
+                                                       font=ctk.CTkFont(family="Arial", size=12, weight='bold'))
+            self.notFound_error_message.place(relx=0, rely=0, x=30, y=52)
+
+    def display_loading_message(self):
+        self.loading_dots = " . . ."
+
+        self.loading_message_text = ctk.CTkLabel(master=self, 
+                                            text="Looking for the URL"+self.loading_dots, 
+                                            text_color="#FFEB38",
+                                            font=ctk.CTkFont(family="Arial", size=12, weight='bold'))
+        
+        self.loading_message_text.place(x=30, y=52)
+        self.update_loading_message()
+            
+
+    def update_loading_message(self):
+        if not self.is_check:
+            self.loading_message_text.destroy()
+            return
+        
+        if self.loading_dots.count(".") >= 3:
+            self.loading_dots = ""
+        else:
+            self.loading_dots+= " ."
+
+        self.loading_message_text.configure(text="Looking for the URL"+self.loading_dots)
+
+        self.after(500, self.update_loading_message)
+
+
+    
