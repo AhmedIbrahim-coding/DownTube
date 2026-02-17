@@ -1,6 +1,11 @@
+# libraries
 import time
 from threading import Thread
 import yt_dlp
+
+#files
+from Frontend.downloadUI import Down_UI
+from Backend.video import Video
 
 class BackApp():
     def __init__(self, frontApp):
@@ -36,6 +41,11 @@ class BackApp():
                     raise Exception
 
             self.frontApp.is_check = False
+
+            video = Video(info=info)
+            print(video.size)
+            
+            download_window = Down_UI(master=self.frontApp)
         except:
             self.frontApp.is_check = False
             time.sleep(0.5)
