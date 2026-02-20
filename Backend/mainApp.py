@@ -43,10 +43,10 @@ class BackApp():
             self.frontApp.is_check = False
 
             video = Video(info=info)
-            print(video.size)
             
-            download_window = Down_UI(master=self.frontApp)
-        except:
+            download_window = Down_UI(master=self.frontApp, video_obj=video)
+        except Exception as e:
+            print(e)
             self.frontApp.is_check = False
             time.sleep(0.5)
             self.frontApp.display_error_message(message="Invalid URL.")

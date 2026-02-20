@@ -43,13 +43,6 @@ class FrontApp(ctk.CTk):
         
         self.linkEntry.pack(pady=20)
 
-        self.create_past_button()
-
-    def create_past_button(self):
-        #create a button on top of the entry field that get the copied link
-        past_button = ctk.CTkButton(master=self.linkEntry, width=40, height=20, text="Past")
-        past_button.place(relx=1, rely=0.5, anchor="center", x=-25)
-
     def create_download_button(self):
         # start download button
         self.download_button = ctk.CTkButton(self,
@@ -100,7 +93,7 @@ class FrontApp(ctk.CTk):
             else:
                 self.loading_dots+= " ."
 
-            self.loading_message_text.configure(text="Looking for the URL"+self.loading_dots)
+            self.after(0, self.loading_message_text.configure(text="Looking for the URL"+self.loading_dots))
 
             time.sleep(0.5)
 

@@ -2,6 +2,7 @@
 import requests
 from PIL import Image
 from io import BytesIO
+import os
 
 
 class Video():
@@ -12,7 +13,12 @@ class Video():
 
         self.duration = self.intialize_duration(info)
         
-        self.size = self.getSize()
+        self.size = self.get_size()
+
+        self.resolution = f"{info.get("width")}X{info.get("height")}"
+
+        self.location = os.path.join(os.path.expanduser("~"), "Downloads")
+        print(self.location)
 
 
     def intialize_duration(self, info) -> str:
@@ -36,9 +42,8 @@ class Video():
             return f"{hours}:{minutes:02d}:{seconds:02d}"
 
 
-    def getSize(self) -> str:
+    def get_size(self) -> str:
         size_in_bytes = 0
-
         # git the size from the info dict
         if "requested_formats" in self.info:
             video_fmt = self.info['requested_formats'][0]
@@ -54,12 +59,12 @@ class Video():
 
         # convert size to MB or GB
         if size_in_bytes > 0:
-            return self.convertBytes(size_in_bytes)
+            return self.convert_Bytes(size_in_bytes)
         else:
             # if size could not be determined just set it to unknown
             return" Unknown Size"
         
-    def convertBytes(self, size_in_bytes : int) -> str:
+    def convert_Bytes(self, size_in_bytes : int) -> str:
             
             KB = size_in_bytes / (1024)
             if KB < 1000:
@@ -72,9 +77,9 @@ class Video():
                     GB = MB / 1024
                     return f"{GB:.2f} GB"
                 
-    def GetImage(self) -> Image:
+    def get_image(self) -> Image:
         # gitting the image from the thumbnail url
-        response = requests.get(self.info['thumbnail'])
+        response = requests.get(self.info.get("thumbnail"))
 
         # store the image as bytes
         image_bytes = response.content
