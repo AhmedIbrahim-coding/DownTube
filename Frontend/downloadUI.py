@@ -2,7 +2,7 @@ import customtkinter as ctk
 import arabic_reshaper
 from bidi.algorithm import get_display
 from PIL import Image
-from pathlib import Path
+from tkinter import filedialog
 
 class Down_UI(ctk.CTkToplevel):
     def __init__(self, master, video_obj):
@@ -93,13 +93,21 @@ class Down_UI(ctk.CTkToplevel):
         # icon
         self.dispaly_detail_icon(master=location_frame, image_name="Location_icon.png", x=5, y=1.5)
 
-        self.choose_location_button = ctk.CTkButton(self,
+        choose_location_button = ctk.CTkButton(self,
                                                text="Browse",
                                                width=80,
                                                height=30,
                                                corner_radius=1,
-                                               font=("Arial", 14),)
-        self.choose_location_button.place(x=410, y=231)
+                                               font=("Arial", 14),
+                                               command=self.change_location)
+        choose_location_button.place(x=410, y=231)
+    
+    def change_location(self):
+        new_location = filedialog.askdirectory(title="Download location", initialdir=self.video_obj.location)
+
+        if new_location:
+            self.video_obj.location = self.video_obj.normalize_download_location(location=new_location)
+            self.location_label.configure(text=self.video_obj.location)
 
     def dispaly_detail_icon(self, master, image_name, x, y):
 
