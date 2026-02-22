@@ -3,6 +3,7 @@ import requests
 from PIL import Image
 from io import BytesIO
 import os
+from pathlib import Path
 
 
 class Video():
@@ -17,8 +18,7 @@ class Video():
 
         self.resolution = f"{info.get("width")}X{info.get("height")}"
 
-        self.location = os.path.join(os.path.expanduser("~"), "Downloads")
-        print(self.location)
+        self.location = self.normalize_download_location(os.path.join(os.path.expanduser("~"), "Downloads"))
 
 
     def intialize_duration(self, info) -> str:
@@ -88,6 +88,20 @@ class Video():
         image = Image.open(BytesIO(image_bytes))
         
         return image
+    
+    def get_icon_image(self, icon_name : str) -> Image:
+        icon_location = Path(__file__).resolve().parent.parent / "Images" / icon_name
+
+        image = Image.open(icon_location)
+        return image
+    
+    def normalize_download_location(self, location) -> str:
+        if len(location) > 50:
+            return f"...."+location[-46:]
+        
+        return location
+    
+
             
         
 

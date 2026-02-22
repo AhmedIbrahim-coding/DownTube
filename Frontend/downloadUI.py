@@ -1,6 +1,8 @@
 import customtkinter as ctk
 import arabic_reshaper
 from bidi.algorithm import get_display
+from PIL import Image
+from pathlib import Path
 
 class Down_UI(ctk.CTkToplevel):
     def __init__(self, master, video_obj):
@@ -10,7 +12,7 @@ class Down_UI(ctk.CTkToplevel):
         self.create_child_window(master)
         self.display_thumbnail()
         self.display_details()
-        self.display_location
+        self.display_location()
 
 
     def create_child_window(self, master):
@@ -57,11 +59,15 @@ class Down_UI(ctk.CTkToplevel):
         duration_label = ctk.CTkLabel(master=self.top_frame, text=duration, font=("Arial", 13))
         duration_label.place(x=375, y=70)
 
+        self.dispaly_detail_icon(master=self.top_frame, image_name="Duration_icon.png", x=350, y=70)
+    
     def display_quality(self):
         quality = self.video_obj.resolution
 
         quality_label = ctk.CTkLabel(master=self.top_frame, text=quality, font=("Arial", 13))
         quality_label.place(x=375, y=100)
+
+        self.dispaly_detail_icon(master=self.top_frame, image_name="Display_icon.png", x=350, y= 100)
 
     def display_size(self):
         size = self.video_obj.size
@@ -69,19 +75,40 @@ class Down_UI(ctk.CTkToplevel):
         size_label = ctk.CTkLabel(master=self.top_frame, text=size, font=("Arial", 13))
         size_label.place(x=375, y=130)
 
+        self.dispaly_detail_icon(master=self.top_frame, image_name="Size_icon.png", x=350, y=130)
+
     def display_location(self):
         location = self.video_obj.location
 
-        location_frame = ctk.CTkFrame(self,
+        location_frame = ctk.CTkFrame(self, 
                                       width=400,
                                       height=32,
                                       fg_color="#1A1A1A", 
                                       corner_radius=1)
         location_frame.place(x=10, y=230)
 
-        self.location_label = ctk.CTkLabel(master=location_frame, text=location, font=("Arial", 12))
+        self.location_label = ctk.CTkLabel(master=location_frame, text=location, font=("Arial", 14))
         self.location_label.place(x=32, y=2)
 
+        # icon
+        self.dispaly_detail_icon(master=location_frame, image_name="Location_icon.png", x=5, y=1.5)
+
+        self.choose_location_button = ctk.CTkButton(self,
+                                               text="Browse",
+                                               width=80,
+                                               height=30,
+                                               corner_radius=1,
+                                               font=("Arial", 14),)
+        self.choose_location_button.place(x=410, y=231)
+
+    def dispaly_detail_icon(self, master, image_name, x, y):
+
+        duration_icon = self.video_obj.get_icon_image(image_name)
+        duration_image = ctk.CTkImage(light_image=duration_icon, 
+                                      dark_image=duration_icon,
+                                      size=(20, 20))
+        duration_icon_label = ctk.CTkLabel(master=master, image=duration_image, text="")
+        duration_icon_label.place(x=x, y=y)
 
     def modify_arabic_text(self, text) -> str:
         
@@ -90,3 +117,4 @@ class Down_UI(ctk.CTkToplevel):
         bidi_text = get_display(reshaped_text)
 
         return bidi_text 
+    
