@@ -20,6 +20,7 @@ class Video():
 
         self.location = self.normalize_download_location(os.path.join(os.path.expanduser("~"), "Downloads"))
 
+        self.resolutions = self.get_formats()
 
     def intialize_duration(self, info) -> str:
         time_in_sec = info.get("duration")
@@ -102,7 +103,25 @@ class Video():
         return location
     
 
-            
+    def get_formats(self):
+        formats = self.info["formats"]
+
+        resolutions = {}
+
+        for format in formats:
+            if (
+                format.get('vcodec') != None 
+                and format.get('height') is not None and 
+                format.get('ext') == "mp4"):
+
+                height = format['height']
+                format_id = format['format_id']
+
+                if height not in resolutions:
+                    resolutions[height] = format_id
+
+
+        return resolutions
         
 
 

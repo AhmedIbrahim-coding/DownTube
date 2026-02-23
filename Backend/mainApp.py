@@ -50,3 +50,4 @@ class BackApp():
             self.frontApp.is_check = False
             time.sleep(0.5)
             self.frontApp.display_error_message(message="Invalid URL.")
+
