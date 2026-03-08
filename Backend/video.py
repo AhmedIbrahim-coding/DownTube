@@ -16,7 +16,7 @@ class Video():
         
         self.size = self.get_size()
 
-        self.resolution = f"{info.get("width")}X{info.get("height")}"
+        self.resolution = f"{info.get("height")}p"
 
         self.location = self.normalize_download_location(os.path.join(os.path.expanduser("~"), "Downloads"))
 
@@ -120,8 +120,36 @@ class Video():
                 if height not in resolutions:
                     resolutions[height] = format_id
 
-
         return resolutions
+
+    def update_resolution(self, choice):
+        self.resolution = choice+"p"
+        self.update_size()
+
+    def update_size(self):
+        # get the size of the format id that matches the resolution
+        format_id = self.resolutions[int(self.resolution[:-1])] # remove the "p" from the resolution to get the height
+        
+        video_format = None
+        best_audio = None
+
+        for f in self.info["formats"]:
+
+            if f["format_id"] == format_id:
+                video_format = f
+
+            if f["vcodec"] == "none" and f["acodec"] != "none":
+                if best_audio is None or f.get("abr",0) > best_audio.get("abr",0):
+                    best_audio = f
+
+        video_size = video_format.get("filesize") or video_format.get("filesize_approx")
+        audio_size = best_audio.get("filesize") or best_audio.get("filesize_approx")
+
+        full_size_in_bytes = video_size + audio_size
+        self.size = self.convert_Bytes(full_size_in_bytes)
+        
+
+
         
 
 

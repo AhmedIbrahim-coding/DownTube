@@ -13,7 +13,7 @@ class Down_UI(ctk.CTkToplevel):
         self.display_thumbnail()
         self.display_details()
         self.display_location()
-
+        self.display_qualities()
 
     def create_child_window(self, master):
         self.master = master
@@ -62,18 +62,18 @@ class Down_UI(ctk.CTkToplevel):
         self.dispaly_detail_icon(master=self.top_frame, image_name="Duration_icon.png", x=350, y=70)
     
     def display_quality(self):
-        quality = self.video_obj.resolution
+        self.quality = self.video_obj.resolution
 
-        quality_label = ctk.CTkLabel(master=self.top_frame, text=quality, font=("Arial", 13))
-        quality_label.place(x=375, y=100)
+        self.quality_label = ctk.CTkLabel(master=self.top_frame, text=self.quality, font=("Arial", 13))
+        self.quality_label.place(x=375, y=100)
 
         self.dispaly_detail_icon(master=self.top_frame, image_name="Display_icon.png", x=350, y= 100)
 
     def display_size(self):
         size = self.video_obj.size
 
-        size_label = ctk.CTkLabel(master=self.top_frame, text=size, font=("Arial", 13))
-        size_label.place(x=375, y=130)
+        self.size_label = ctk.CTkLabel(master=self.top_frame, text=size, font=("Arial", 13))
+        self.size_label.place(x=375, y=130)
 
         self.dispaly_detail_icon(master=self.top_frame, image_name="Size_icon.png", x=350, y=130)
 
@@ -108,6 +108,34 @@ class Down_UI(ctk.CTkToplevel):
         if new_location:
             self.video_obj.location = self.video_obj.normalize_download_location(location=new_location)
             self.location_label.configure(text=self.video_obj.location)
+
+    def display_qualities(self):
+
+        # create a drop box to display the available qualities
+        qualities = self.video_obj.get_formats()
+
+        qualities_list = qualities.keys()
+
+        qualities_list = list(str(key) for key in qualities.keys())
+
+        qualities_dropbox = ctk.CTkOptionMenu(self,
+                                        values=qualities_list,
+                                        width=100,
+                                        height=30,
+                                        corner_radius=1,
+                                        font=("Arial", 13),
+                                        command=self.update_resolution)
+        
+        qualities_dropbox.set("1080") # set default value to 1080p
+        qualities_dropbox.place(x=10, y=300)
+
+        
+    def update_resolution(self, choice):
+        self.video_obj.update_resolution(choice)
+        
+        self.quality_label.configure(text=self.video_obj.resolution)
+        self.size_label.configure(text=self.video_obj.size) # update the size label to reflect the new size based on the selected resolution
+
 
     def dispaly_detail_icon(self, master, image_name, x, y):
 
