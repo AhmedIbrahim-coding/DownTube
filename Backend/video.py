@@ -7,20 +7,22 @@ from pathlib import Path
 
 
 class Video():
-    def __init__(self, info : dict):
+    def __init__(self, info : dict, url : str = None):
         self.info = info
 
         self.title = info.get("title")
 
         self.duration = self.intialize_duration(info)
-        
-        self.size = self.get_size()
 
+        self.resolutions = self.get_formats()
+        
         self.resolution = f"{info.get("height")}p"
+
+        self.size = self.get_size()
 
         self.location = self.normalize_download_location(os.path.join(os.path.expanduser("~"), "Downloads"))
 
-        self.resolutions = self.get_formats()
+        self.url = url
 
     def intialize_duration(self, info) -> str:
         time_in_sec = info.get("duration")
@@ -45,18 +47,25 @@ class Video():
 
     def get_size(self) -> str:
         size_in_bytes = 0
-        # git the size from the info dict
-        if "requested_formats" in self.info:
-            video_fmt = self.info['requested_formats'][0]
-            audio_fmt = self.info['requested_formats'][1]
-            
-            video_size = video_fmt.get('filesize') or video_fmt.get('filesize_approx')
-            audio_size = audio_fmt.get('filesize') or audio_fmt.get('filesize_approx')
+        # git the size from the last format id
+        format_id = self.resolutions[int(self.resolution[:-1])] # remove the "p" from the resolution to get the height
+        
+        video_format = None
+        best_audio = None
 
-            size_in_bytes = video_size + audio_size
-        else:
-            fmt = self.info
-            size_in_bytes = fmt.get('filesize') or fmt.get('filesize_approx')
+        for f in self.info["formats"]:
+
+            if f["format_id"] == format_id:
+                video_format = f
+
+            if f["vcodec"] == "none" and f["acodec"] != "none":
+                if best_audio is None or f.get("abr",0) > best_audio.get("abr",0):
+                    best_audio = f
+
+        video_size = video_format.get("filesize") or video_format.get("filesize_approx")
+        audio_size = best_audio.get("filesize") or best_audio.get("filesize_approx")
+
+        size_in_bytes = video_size + audio_size
 
         # convert size to MB or GB
         if size_in_bytes > 0:

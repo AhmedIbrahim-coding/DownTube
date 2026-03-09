@@ -4,9 +4,14 @@ from bidi.algorithm import get_display
 from PIL import Image
 from tkinter import filedialog
 
+#Files
+from Backend.downloader import Downloader
+from Backend.video import Video
+
 class Down_UI(ctk.CTkToplevel):
-    def __init__(self, master, video_obj):
+    def __init__(self, master, video_obj: Video, back_app):
         self.video_obj = video_obj
+        self.back_app = back_app
 
         super().__init__()
         self.create_child_window(master)
@@ -14,6 +19,7 @@ class Down_UI(ctk.CTkToplevel):
         self.display_details()
         self.display_location()
         self.display_qualities()
+        self.display_download_button()
 
     def create_child_window(self, master):
         self.master = master
@@ -126,7 +132,7 @@ class Down_UI(ctk.CTkToplevel):
                                         font=("Arial", 13),
                                         command=self.update_resolution)
         
-        qualities_dropbox.set("1080") # set default value to 1080p
+        qualities_dropbox.set(qualities_list[-1]) # set default value to 1080p
         qualities_dropbox.place(x=10, y=300)
 
         
@@ -154,3 +160,16 @@ class Down_UI(ctk.CTkToplevel):
 
         return bidi_text 
     
+    def display_download_button(self):
+        download_button = ctk.CTkButton(self,
+                                       text="Download",
+                                       width=100,
+                                       height=30,
+                                       corner_radius=1,
+                                       font=("Arial", 14),
+                                       command=self.start_download)
+        download_button.place(x=600, y=300)
+
+    def start_download(self):
+        downloader = Downloader(self.video_obj)
+        downloader.download_video()

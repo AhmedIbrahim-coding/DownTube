@@ -42,9 +42,9 @@ class BackApp():
 
             self.frontApp.is_check = False
 
-            video = Video(info=info)
+            video = Video(info=info, url=url)
             
-            download_window = Down_UI(master=self.frontApp, video_obj=video)
+            download_window = Down_UI(master=self.frontApp, video_obj=video, back_app=self)
         except Exception as e:
             print(e)
             self.frontApp.is_check = False
