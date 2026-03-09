@@ -55,6 +55,7 @@ class Down_UI(ctk.CTkToplevel):
             title = title[:30]+"...."
 
         title = self.modify_arabic_text(title)
+        self.video_obj.title = title # update the title to the modified one to avoid issues with file naming during download
 
         title_label = ctk.CTkLabel(master=self.top_frame, text=title, font=("Airal", 20))
         title_label.place(x=350, y=20)
@@ -120,20 +121,33 @@ class Down_UI(ctk.CTkToplevel):
         # create a drop box to display the available qualities
         qualities = self.video_obj.get_formats()
 
-        qualities_list = qualities.keys()
+        # convert to list of strings, but guard against empty dict
+        if qualities:
+            qualities_list = [str(key) for key in qualities.keys()]
+        else:
+            qualities_list = []
 
-        qualities_list = list(str(key) for key in qualities.keys())
-
-        qualities_dropbox = ctk.CTkOptionMenu(self,
-                                        values=qualities_list,
-                                        width=100,
-                                        height=30,
-                                        corner_radius=1,
-                                        font=("Arial", 13),
-                                        command=self.update_resolution)
-        
-        qualities_dropbox.set(qualities_list[-1]) # set default value to 1080p
-        qualities_dropbox.place(x=10, y=300)
+        if qualities_list:
+            qualities_dropbox = ctk.CTkOptionMenu(self,
+                                            values=qualities_list,
+                                            width=100,
+                                            height=30,
+                                            corner_radius=1,
+                                            font=("Arial", 13),
+                                            command=self.update_resolution)
+            # default to the highest available resolution (last item after sorting)
+            # convert back to int for proper ordering
+            try:
+                sorted_vals = sorted(qualities_list, key=lambda x:int(x))
+                default = sorted_vals[-1]
+            except Exception:
+                default = qualities_list[-1]
+            qualities_dropbox.set(default)
+            qualities_dropbox.place(x=10, y=300)
+        else:
+            # no quality options found - just show a placeholder label
+            no_res_label = ctk.CTkLabel(self, text="No mp4 formats available", font=("Arial", 13))
+            no_res_label.place(x=10, y=300)
 
         
     def update_resolution(self, choice):

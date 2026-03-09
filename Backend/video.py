@@ -16,7 +16,16 @@ class Video():
 
         self.resolutions = self.get_formats()
         
-        self.resolution = f"{info.get("height")}p"
+        # pick a default resolution: use the height field if available else take the max
+        height_val = info.get("height")
+        if height_val is None:
+            # fall back to the highest available resolution from the formats dict
+            if self.resolutions:
+                height_val = max(self.resolutions.keys())
+            else:
+                height_val = 0
+
+        self.resolution = f"{height_val}p"
 
         self.size = self.get_size()
 
@@ -46,24 +55,41 @@ class Video():
 
 
     def get_size(self) -> str:
+        # calculate size in bytes for the currently selected resolution
+        # if anything is missing we fall back to an "Unknown Size" string
         size_in_bytes = 0
-        # git the size from the last format id
-        format_id = self.resolutions[int(self.resolution[:-1])] # remove the "p" from the resolution to get the height
-        
+
+        # remove the "p" from the resolution to get the height as an int
+        try:
+            res_key = int(self.resolution[:-1])
+        except Exception:
+            return "Unknown Size"
+
+        # use dict.get in case resolutions dict is empty or missing the key
+        format_id = self.resolutions.get(res_key)
+        if format_id is None:
+            # nothing matched the requested resolution
+            return "Unknown Size"
+
         video_format = None
         best_audio = None
 
-        for f in self.info["formats"]:
+        for f in self.info.get("formats", []):
 
-            if f["format_id"] == format_id:
+            if f.get("format_id") == format_id:
                 video_format = f
 
-            if f["vcodec"] == "none" and f["acodec"] != "none":
-                if best_audio is None or f.get("abr",0) > best_audio.get("abr",0):
+            # pick the highest bitrate audio-only stream
+            if f.get("vcodec") == "none" and f.get("acodec") != "none":
+                if best_audio is None or f.get("abr", 0) > best_audio.get("abr", 0):
                     best_audio = f
 
-        video_size = video_format.get("filesize") or video_format.get("filesize_approx")
-        audio_size = best_audio.get("filesize") or best_audio.get("filesize_approx")
+        # if we failed to find either component just bail out
+        if video_format is None or best_audio is None:
+            return "Unknown Size"
+
+        video_size = video_format.get("filesize") or video_format.get("filesize_approx") or 0
+        audio_size = best_audio.get("filesize") or best_audio.get("filesize_approx") or 0
 
         size_in_bytes = video_size + audio_size
 
@@ -72,7 +98,7 @@ class Video():
             return self.convert_Bytes(size_in_bytes)
         else:
             # if size could not be determined just set it to unknown
-            return" Unknown Size"
+            return "Unknown Size"
         
     def convert_Bytes(self, size_in_bytes : int) -> str:
             
@@ -113,21 +139,22 @@ class Video():
     
 
     def get_formats(self):
-        formats = self.info["formats"]
+        # return a mapping of vertical video heights to their format_id
+        formats = self.info.get("formats", [])
 
         resolutions = {}
 
-        for format in formats:
+        for fmt in formats:
+            # only video tracks with a height and mp4 container
             if (
-                format.get('vcodec') != None 
-                and format.get('height') is not None and 
-                format.get('ext') == "mp4"):
-
-                height = format['height']
-                format_id = format['format_id']
-
-                if height not in resolutions:
-                    resolutions[height] = format_id
+                fmt.get('vcodec') is not None
+                and fmt.get('height') is not None
+                and fmt.get('ext') == "mp4"
+            ):
+                height = fmt['height']
+                fmt_id = fmt.get('format_id')
+                if height not in resolutions and fmt_id is not None:
+                    resolutions[height] = fmt_id
 
         return resolutions
 
@@ -136,23 +163,36 @@ class Video():
         self.update_size()
 
     def update_size(self):
-        # get the size of the format id that matches the resolution
-        format_id = self.resolutions[int(self.resolution[:-1])] # remove the "p" from the resolution to get the height
-        
+        # update the stored size property after the resolution has changed
+        try:
+            res_key = int(self.resolution[:-1])
+        except Exception:
+            self.size = "Unknown Size"
+            return
+
+        format_id = self.resolutions.get(res_key)
+        if format_id is None:
+            self.size = "Unknown Size"
+            return
+
         video_format = None
         best_audio = None
 
-        for f in self.info["formats"]:
+        for f in self.info.get("formats", []):
 
-            if f["format_id"] == format_id:
+            if f.get("format_id") == format_id:
                 video_format = f
 
-            if f["vcodec"] == "none" and f["acodec"] != "none":
-                if best_audio is None or f.get("abr",0) > best_audio.get("abr",0):
+            if f.get("vcodec") == "none" and f.get("acodec") != "none":
+                if best_audio is None or f.get("abr", 0) > best_audio.get("abr", 0):
                     best_audio = f
 
-        video_size = video_format.get("filesize") or video_format.get("filesize_approx")
-        audio_size = best_audio.get("filesize") or best_audio.get("filesize_approx")
+        if video_format is None or best_audio is None:
+            self.size = "Unknown Size"
+            return
+
+        video_size = video_format.get("filesize") or video_format.get("filesize_approx") or 0
+        audio_size = best_audio.get("filesize") or best_audio.get("filesize_approx") or 0
 
         full_size_in_bytes = video_size + audio_size
         self.size = self.convert_Bytes(full_size_in_bytes)

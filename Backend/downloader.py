@@ -11,13 +11,14 @@ class Downloader():
     def download_video(self):
         resolution = int(self.video_obj.resolution[:-1]) # remove the "p" from the resolution to get the height
         video_format = self.video_obj.resolutions[resolution] # get the format id that matches the resolution
-        path = self.unique_path(self.video_obj.location)
-
+        video_name = "downloaded_video.mp4" 
+        path = self.unique_path(os.path.join(self.video_obj.location, video_name)) # get a unique path for the downloaded video to avoid overwriting existing files
+   
         options = {
             'quiet': True,
             'no_warnings': True,
             'format': f'{video_format}+bestaudio[ext=m4a]/best[ext=mp4]',
-            'outtmpl': f'{path}/%(title)s.%(ext)s',
+            'outtmpl': path,
         }
         
         with yt_dlp.YoutubeDL(options) as ydl:
@@ -33,7 +34,6 @@ class Downloader():
             path = f"{base}({counter}){ext}"
             counter += 1
 
-            print(path)
-
         # return the final path form
+        print(path)
         return path

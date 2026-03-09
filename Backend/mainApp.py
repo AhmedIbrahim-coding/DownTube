@@ -37,7 +37,8 @@ class BackApp():
             with yt_dlp.YoutubeDL(options) as ydl:
                 info = ydl.extract_info(url=url, download=False)
                 
-                if not info.get("duration"):
+                # make sure we got a valid dictionary
+                if not isinstance(info, dict) or not info.get("duration"):
                     raise Exception
 
             self.frontApp.is_check = False
